@@ -4,6 +4,7 @@
   "description": "inwood addresses",
   "main": "addressServer.js",
   "scripts": {
+    "start": "node addressServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
