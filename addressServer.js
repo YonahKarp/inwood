@@ -80,7 +80,7 @@ function getAddresses(){
 
     fs.readFile('addresses.txt', function(err, data) {
         globalResponse.writeHead(200, {'Content-Type': 'text/html'});
-        globalResponse.write(JSON.stringify(data));
+        globalResponse.write(data);
         globalResponse.end();
     });
 }
