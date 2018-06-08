@@ -5,8 +5,8 @@ var globalResponse;
 
 http.createServer(function (request, res) {
 
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    // res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Headers", "X-Requested-With");
     globalResponse = res
 
     var params = url.parse(request.url, true).query;
