@@ -77,9 +77,11 @@ function addAddress(address){
 
 //get
 function getAddresses(){
+    console.log("getting addresses...")
+
     fs.readFile('addresses.txt', function(err, data) {
         globalResponse.writeHead(200, {'Content-Type': 'text/html'});
-        globalResponse.write(data);
+        globalResponse.write(JSON.stringify(data));
         globalResponse.end();
     });
 }
