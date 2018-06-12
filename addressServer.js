@@ -23,6 +23,7 @@ http.createServer(function (request, res) {
             getAddresses();
             break;  
         default:
+            globalResponse.end();
             break;
     }
 }).listen(process.env.PORT || 5000);
@@ -80,7 +81,11 @@ function getAddresses(){
 
     fs.readFile('addresses.txt', function(err, data) {
         globalResponse.writeHead(200, {'Content-Type': 'text/html'});
-        globalResponse.write(data);
+        try{
+            globalResponse.write(data);
+        }catch(error){
+            console.log("data can not be written: " + JSON.stringify(error) + "\n data: " + data)
+        }
         globalResponse.end();
     });
 }
