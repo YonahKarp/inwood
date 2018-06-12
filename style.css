@@ -1,0 +1,49 @@
+#map {
+    height: 100%;
+  }
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  #title{
+    display: none;
+    position: fixed;
+    z-index: 10;
+    width: 50%;
+    top: 1%;
+    margin-left: -25%;
+    left: 50%;
+    text-align: center;
+    color: #0B4F91
+
+  }
+
+  #ykarp{
+    position: fixed;
+    z-index: 10;
+    bottom: 3%;
+    left: 3%;
+    margin-right: 3%;
+    text-align: center;
+    border-radius: 3px;
+    background: #0B4F91;
+    color: #f0f0f0;
+    padding: 10px 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    
+
+  }
+
+  #logo{
+    position: fixed;
+    z-index: 10;
+    top: 3%;
+    right: 3%;
+    width: 10%;
+    max-width: 150px;
+    min-width: 75px;
+    border-radius: 50%;
+  }
