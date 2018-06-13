@@ -1,6 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+var sql = require('mysql');
 var globalResponse;
 
 http.createServer(function (request, res) {
@@ -12,6 +13,9 @@ http.createServer(function (request, res) {
     
 
     switch(params.method){
+        case "test":
+            test();
+            break;
         case "setup":
             initialSetup();
             break;
@@ -88,4 +92,21 @@ function getAddresses(){
         }
         globalResponse.end();
     });
+}
+
+function test(){
+
+    console.log("test")
+
+    var con = sql.createConnection({
+        host: "104.131.8.27",
+        user: "root",
+        password: "siyum",
+        database: "inwood"
+      });
+      
+      con.connect(function(err) {
+        if (err) throw err;
+        console.log("Connected!");
+      });
 }

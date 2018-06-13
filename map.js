@@ -1,6 +1,7 @@
 $(document).ready(function(){
-
-  
+    $("#close").click(function(){
+        $("#ykarp").hide();
+    })
  });
 
  var geocoder, map, infowindow, service;
