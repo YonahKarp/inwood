@@ -242,7 +242,7 @@ function getAddresses(){
 
     return new Promise(function(resolve, reject) {
       
-        var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+        var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000"
 
 
         $.get(baseUrl + "/?method=get", function(data){
@@ -257,7 +257,7 @@ function getAddresses(){
 function getPendingAddresses(){
     return new Promise(function(resolve, reject) {
       
-        var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+        var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000" 
 
 
         $.get(baseUrl + "/?method=getPending", function(data){
@@ -280,7 +280,7 @@ function getPendingAddresses(){
 
 
 function addAddressToDb(location){
-    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000"
     
     var password = $("#password").val();
 
@@ -301,7 +301,7 @@ function addAddressToDb(location){
 
 function suggestAddress(location){
     
-    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000" 
 
     $.get(baseUrl+"/?method=suggest&address="+location.address+"&lat="+location.position.lat+"&lng="+location.position.lng,
         function(data){
@@ -315,7 +315,7 @@ function suggestAddress(location){
 
 function approvePendingAddress(location){
     
-    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000"
     
     var password = $("#pass").val();
 
@@ -335,7 +335,7 @@ function approvePendingAddress(location){
 
 function deletePendingAddress(location){
      
-    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    var baseUrl = "https://inwood-addresses.herokuapp.com" //"http://localhost:5000"
     var password = $("#pass").val();
 
 
