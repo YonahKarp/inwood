@@ -1,10 +1,125 @@
-$(document).ready(function(){
-    $("#close").click(function(){
-        $("#ykarp").hide();
-    })
- });
+var geocoder, map, infowindow, service, pendingToggle, pendingAddressMarkers, approveAddress, adminMethod, deleteMarker, savedPassword;
 
- var geocoder, map, infowindow, service;
+$(document).ready(function(){
+    $(".close").click(function(){
+        $(this).parent().hide();
+        $("#overlay").hide();
+    })
+
+    $(".suggest").click(function(){
+        $("#addressForm").show();
+        $("#overlay").show();
+        if(savedPassword)
+            $("#password").val(savedPassword);
+    })
+
+    $(document).on( 'click', '.approve', function () {
+        $("#approvalForm").show();
+        if(savedPassword)
+            $("#pass").val(savedPassword);
+        $("#approvalAddress").text(approveAddress.address)
+        
+        $("#overlay").show();
+        adminMethod = approvePendingAddress;
+    });
+
+    $(document).on( 'click', '.delete', function () {
+        $("#approvalForm").show();
+        if(savedPassword)
+            $("#pass").val(savedPassword);
+        $("#approvalAddress").text(approveAddress.address)
+        $(".adminHeader").text("Remove Pending Address")
+        $("#overlay").show();
+        adminMethod = deletePendingAddress;
+    });
+
+    $("#overlay").click(function(){
+        $("#overlay").hide();
+        $("#addressForm").hide();
+    })
+
+    $("#approveForm").submit(function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+
+        var password = $("#pass").val();
+
+        if(password){
+            adminMethod(approveAddress);
+        }else{
+            showAlertLayer("Please enter a passcode", 3000);
+        }
+
+        $("#overlay").hide();
+        $("#approvalForm").hide();
+    })
+
+    $("#form").submit(function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+        var address = $("#newAddress").val();
+
+        var password = $("#password").val();
+
+        if(!/\d+ \w+/.test(address)){
+            showAlertLayer("Please input a proper address", 3000)
+            $("#newAddress").val("");
+            return;
+        }
+
+
+        if(address && password){
+            geocodeAddress(address, addAddressToDb)
+            $("#overlay").hide();
+            $("#addressForm").hide();
+        } else if(address && !password){
+            geocodeAddress(address, suggestAddress);
+            $("#overlay").hide();
+            $("#addressForm").hide();
+        } else if(!address){
+            showAlertLayer("Please submit an address", 3000);
+        }
+
+        $("#overlay").hide();
+        $("#addressForm").hide();
+    })
+
+    $("#admin").click(function(){
+        $("#adminPass").toggle()
+    })
+
+    $("#pendingToggle").click(function(){
+        pendingToggle = !pendingToggle
+        $(this).toggleClass("active", pendingToggle);
+
+        if(pendingToggle)
+            if(pendingAddressMarkers)
+                pendingAddressMarkers.forEach(e => e.setMap(map));
+            else{
+                getPendingAddresses().then(function(pendingAddresses){
+                    pendingAddressMarkers = [];
+                    var newAddresses = pendingAddresses.filter( address => baseAddresses.every(baseAddress => Math.abs(address.lat - baseAddress.position.lat) > .00008 || Math.abs(address.lng - baseAddress.position.lng) > .00008));
+
+                    if(newAddresses.length == 0){
+                        showAlertLayer("There are no addresses pending at this time", 3000);
+                    }
+
+                    for(let location of newAddresses){
+                        var temp = {address: location.address, position: { lat: location.lat, lng: location.lng}}
+                        baseAddresses.push(temp);
+                        pendingAddressMarkers.push(placeMarkerAtAddress(temp, "./pinBlue.png",true))
+                    }
+                });
+            }
+        else
+            pendingAddressMarkers.forEach(e => e.setMap(null)); 
+    })
+
+
+
+ });
 
  function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -14,25 +129,24 @@ $(document).ready(function(){
     geocoder = new google.maps.Geocoder();
     infowindow = new google.maps.InfoWindow();
 
-    // document.getElementById('submit').addEventListener('click', function() {
-    //     geocodeAddress(geocoder, map);
-    // });
-
     addAddresses(baseAddresses)
-
-    // getAddresses().then(function(addresses){
-    //     var arr = JSON.parse(addresses)
-
-    //     var newAddresses = arr.map(e => e.address).filter(e => baseAddresses.indexOf(e) == -1);
-    
-    //addAddresses(newAddresses)
-       // addSpecialAddresses();
-    //});
-    // addSpecialAddresses();
+    addSpecialAddresses();
 
     setTimeout(function(){ $("#title").fadeIn()},1000)
-
     setTimeout(function(){ $("#title").fadeOut()},4000)
+
+
+    setTimeout(function(){
+        getAddresses().then(function(data){
+            var newAddresses = data.filter( address => baseAddresses.every(baseAddress => Math.abs(address.lat - baseAddress.position.lat) > .00008 || Math.abs(address.lng - baseAddress.position.lng) > .00008));
+            for(let location of newAddresses){
+                var temp = {address: location.address, position: { lat: location.lat, lng: location.lng}}
+                baseAddresses.push(temp);
+                placeMarkerAtAddress(temp, "./pin.png");
+            }
+        });
+    }, 0) //defer
+    
   
 }
 
@@ -44,15 +158,15 @@ function addAddresses(addresses){
 }
 
 function addSpecialAddresses(){
-    var addresses = ["321 Doughty Blvd", ]
+    var addresses = [{address:"Yeshiva Ketana",position:{lat:40.62012199999999,lng:-73.74732599999999}}]
 
-    placeMarkerAtAddress(addresses[0] + "", "./synagogue.png");
+    placeMarkerAtAddress(addresses[0], "./synagogue.png");
     
 }
 
 window.markers = [];
 
-function placeMarkerAtAddress(address, icon){
+function placeMarkerAtAddress(address, icon, approve){
     var marker;
     marker = new google.maps.Marker({
         map: map,
@@ -61,30 +175,198 @@ function placeMarkerAtAddress(address, icon){
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-        infowindow.setContent('<div><strong>' + address.address + '</strong></div>');
+        var content = '<div><strong>' + address.address + '</strong></div>' + (approve ? 
+            '<div class="approve">Approve</div>' +
+            '<div class="delete">Delete</div>'
+            : '');
+        infowindow.setContent(content);
         infowindow.open(map, this);
-        });
+
+        approveAddress = address;
+        deleteMarker = marker;
+    });
+
+    return marker;
 }
 
-function geocodeAddress() {
-    var address = document.getElementById('address').value;
-    placeMarkerAtAddress(address)
+function geocodeAddress(address, callback) {
+    geocoder.geocode( { 'address': address + ", Inwood, NY, 11096"}, function(results, status) {
+        if (status == 'OK') {
+          map.setCenter(results[0].geometry.location);
+          var location = {address: address, position: {lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng()}}
+
+          var newaddress = {address: location.address, lat: location.position.lat, lng: location.position.lng};
+          
+          if(pendingAddressMarkers){
+            var isNewAddress = baseAddresses.every(baseAddress => Math.abs(newaddress.lat - baseAddress.position.lat) > .00008 || Math.abs(newaddress.lng - baseAddress.position.lng) > .00008);
+            if(isNewAddress){
+                callback(location);
+                baseAddresses.push(location);
+                placeMarkerAtAddress(location, "./pinBlue.png");
+            }else{
+                showAlertLayer('A similar address seems to already exist.', 3000)
+            }
+          }else{
+            getPendingAddresses().then(function(pendingAddresses){
+              pendingAddressMarkers = [];
+              var newAddresses = pendingAddresses.filter( address => baseAddresses.every(baseAddress => Math.abs(address.lat - baseAddress.position.lat) > .00008 || Math.abs(address.lng - baseAddress.position.lng) > .00008));
+
+              for(let location of newAddresses){
+                  var temp = {address: location.address, position: { lat: location.lat, lng: location.lng}}
+                  baseAddresses.push(temp);
+                  marker = placeMarkerAtAddress(temp, "./pinBlue.png",true)
+                  marker.setMap(null);
+                  pendingAddressMarkers.push(marker);
+                }
+
+              var isNewAddress = baseAddresses.every(baseAddress => Math.abs(newaddress.lat - baseAddress.position.lat) > .00008 || Math.abs(newaddress.lng - baseAddress.position.lng) > .00008);
+              if(isNewAddress){
+                callback(location);
+                baseAddresses.push(location);
+                placeMarkerAtAddress(location, "./pinBlue.png");
+              }else{
+                showAlertLayer('A similar address seems to already exist. Check pending addresses', 3000)
+              }
+            });
+          }
+          
+        } else {
+            showAlertLayer('Geocode was not successful for the following reason: ' + status, 8000)
+
+          return false;
+        }
+    });
 }
 
 function getAddresses(){
 
     return new Promise(function(resolve, reject) {
       
-        $.get("https://inwood-addresses.herokuapp.com/?method=get", function(data){
-            console.log(data)
-            resolve(data);
+        var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+
+
+        $.get(baseUrl + "/?method=get", function(data){
+            resolve(JSON.parse(data));
         }).fail(function(){
             console.log("failed get");
             resolve([]);
         })
     });
-   
 }
+
+function getPendingAddresses(){
+    return new Promise(function(resolve, reject) {
+      
+        var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+
+
+        $.get(baseUrl + "/?method=getPending", function(data){
+            var response = JSON.parse(data);
+
+            if(response.status == "failed"){
+                showAlertLayer(response.message, 5000)
+                reject();
+            } else
+                resolve(response);
+
+        }).fail(function(){
+            console.log("failed getPending");
+            showAlertLayer("Could not get pending addresses. There seems to be a problem with the server.", 5000)
+
+            resolve([]);
+        })
+    });
+}
+
+
+function addAddressToDb(location){
+    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    
+    var password = $("#password").val();
+
+    $.get(baseUrl+"/?method=add&password="+password+"&address="+location.address+"&lat="+location.position.lat+"&lng="+location.position.lng,
+        function(data){
+            var response = JSON.parse(data);
+            if(response.status == "failed"){
+                showAlertLayer(response.message, 5000)
+                reject();
+            } else{
+                showAlertLayer("The address has been added", 3000)
+                savedPassword = response.password;
+            }
+    }).fail(function(){
+        showAlertLayer("Your address failed to submit", 3000)
+    })
+}
+
+function suggestAddress(location){
+    
+    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+
+    $.get(baseUrl+"/?method=suggest&address="+location.address+"&lat="+location.position.lat+"&lng="+location.position.lng,
+        function(data){
+        showAlertLayer("Your address has been submitted and is pending approval.", 3000)
+
+    }).fail(function(){
+        showAlertLayer("Your address failed to submit", 3000)
+    })
+}
+
+
+function approvePendingAddress(location){
+    
+    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    
+    var password = $("#pass").val();
+
+    $.get(baseUrl+"/?method=approve&password="+password+"&address="+location.address+"&lat="+location.position.lat+"&lng="+location.position.lng,
+        function(data){
+            var response = JSON.parse(data);
+            if(response.status == "failed")
+                showAlertLayer(response.message, 5000)
+            else{
+                showAlertLayer("Your address has been submitted!", 3000)
+                savedPassword = response.password;
+            }
+    }).fail(function(){
+        showAlertLayer("Your address failed to submit", 3000)
+    })
+}
+
+function deletePendingAddress(location){
+     
+    var baseUrl = "http://localhost:5000" //"https://inwood-addresses.herokuapp.com"
+    var password = $("#pass").val();
+
+
+    $.get(baseUrl+"/?method=delete&password="+password+"&address="+location.address,
+        function(data){
+
+            var response = JSON.parse(data);
+            if(response.status == "failed")
+                showAlertLayer(response.message, 5000)
+            else{
+                showAlertLayer("Address has been removed from pending", 3000)
+                savedPassword = response.password;
+                pendingAddressMarkers = pendingAddressMarkers.filter(e => e != deleteMarker);
+                deleteMarker.setMap(null)
+            }
+
+    }).fail(function(){
+        showAlertLayer("Could not remove address from server", 3000)
+    })
+}
+
+var alertLayer = $("#alertLayer");
+function showAlertLayer(message, timeout){
+    
+    alertLayer.text(message).show();
+    setTimeout(function(){
+        alertLayer.fadeOut()
+    },timeout)
+}
+
+var approvalForm = '<div>pass: <input id="pass" type="text"/></div>'
 
 var baseAddresses = [
     {position:{lng:-73.75056669999998,lat:40.6225408},address:"188 Donahue Avenue"},

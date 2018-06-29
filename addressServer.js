@@ -2,111 +2,164 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var sql = require('mysql');
-var globalResponse;
 
 http.createServer(function (request, res) {
+
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
-    globalResponse = res
 
     var params = url.parse(request.url, true).query;
-    
 
+    console.log("hit server: " + params.method);
+    
     switch(params.method){
         case "test":
             test();
             break;
-        case "setup":
-            initialSetup();
+        case "query":
+            query(params.query);
             break;
         case "add":
-            if(params.address)
-                addAddress(params.address);
+            addAddress(params.password, params.address, params.lat, params.lng);
             break;
         case "get":
             getAddresses();
+            break; 
+        case "getPending":
+            getPending();
             break;  
+        case "suggest":
+            addToPending(params.address, params.lat, params.lng);
+            break; 
+        case "approve":
+            approveAddress(params.password, params.address, params.lat, params.lng);
+            break;
+        case "delete":
+            deleteAddress(params.password, params.address);
+            break;   
         default:
-            globalResponse.end();
+            res.end();
             break;
     }
+
+    //get
+    function getAddresses(){
+        console.log("getting addresses...")
+
+        var queryStr = "SELECT * FROM addresses;";
+        query(queryStr);
+    }
+
+    //get
+    function getPending(){
+        console.log("getting pending...")
+
+        var queryStr = "SELECT * FROM pending;";
+        query(queryStr);
+    }
+
+    //suggest
+    function addToPending(address, lat, lng){
+        var queryStr = "INSERT INTO pending VALUES('"+address+"',"+lng+","+lat+");"
+        query(queryStr);
+    }
+
+    //add
+    function addAddress(password, address, lat, lng){
+
+        if(password == "pinitHeskiel"){
+
+            var queryStr = "INSERT INTO addresses VALUES('"+address+"',"+lng+","+lat+");"
+            query(queryStr, password);
+        }else
+            process.exitCode = 1;
+    }
+
+    //approve address
+    function approveAddress(password, address, lat, lng){
+        if(password == "pinitHeskiel"){
+            var queryStr = "DELETE FROM pending WHERE address = '"+address+"'; INSERT INTO addresses VALUES('"+address+"',"+lng+","+lat+");"
+            query(queryStr), password;
+        }else
+            fail("The password you submitted was incorrect");
+    }
+
+    //delete address
+    function deleteAddress(password, address){
+        if(password == "pinitHeskiel"){
+            var queryStr = "DELETE FROM pending WHERE address = '"+address+"';"
+            query(queryStr, password);
+        }else
+           fail("The password you submitted was incorrect")
+    }
+
+    function test(){
+
+        console.log("testing changes")
+
+        var con = sql.createConnection({
+            host: "g3v9lgqa8h5nq05o.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+            user: "c8qmp9y0f2fpdclk",
+            port     :  3306,
+            acquireTimeout: 10000, //10 secs
+            connectTimeout: 10000,
+            password: "b4djyejzow6gpk21",
+            database: "jpn7i5whtbwbqtrl"
+        });
+        
+        con.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+        });
+
+        con.end();
+        res.end();
+    }
+
+    function fail(message){
+        process.exitCode = 1;
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write('{"status": "failed", "message": "'+message+'"}');
+        res.end();
+    }
+
+    function query(queryStr, password){
+
+        var con = sql.createConnection({
+            host: "g3v9lgqa8h5nq05o.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+            user: "c8qmp9y0f2fpdclk",
+            port     :  3306,
+            acquireTimeout: 10000, //10 secs
+            connectTimeout: 10000,
+            password: "b4djyejzow6gpk21",
+            database: "jpn7i5whtbwbqtrl",
+            multipleStatements: true
+        });
+        
+        con.connect(function(err) {
+            if (err) throw err;
+            var sql = queryStr;
+
+            console.log("query = " + sql);
+    
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+
+                if(password){
+                    res.writeHead(200, {'Content-Type': 'text/html'});
+                    res.write('{"password": "'+password+'"}');
+                }else{
+                    res.writeHead(200, {'Content-Type': 'text/html'});
+                    res.write(JSON.stringify(result));
+                }
+                console.log(JSON.stringify(result));
+
+
+                con.end();
+                res.end();
+            });
+
+        });
+    }
+
 }).listen(process.env.PORT || 5000);
-
-//initialList
-function initialSetup(){
-    var initialList = [
-        {"address" :"322 Mott Ave"},
-        {"address" : "37 Oak Ave"},
-        {"address" : "377 Sheridan blvd"},
-        {"address" : "222 Doughty blvd"},
-        {"address" : "10 Brafmans Rd"}
-    ];
-
-    fs.writeFile('addresses.txt', JSON.stringify(initialList), function (err) {
-        if (err) throw err;
-        console.log('wrote List!');
-    });
-
-    fs.readFile('addresses.txt', function(err, data) {
-        globalResponse.writeHead(200, {'Content-Type': 'text/html'});
-        globalResponse.write(data);
-        globalResponse.end();
-    });
-}
-
-//add
-function addAddress(address){
-    var addresses;
-
-    console.log('adding address..');
-
-
-    addresses = JSON.parse(fs.readFileSync('addresses.txt', 'utf8'));
-
-    console.log('addresses:' + JSON.stringify(addresses));
-
-    if(!addresses)
-        return;
-    else
-        addresses.push({"address": address})
-
-    fs.writeFile('addresses.txt', JSON.stringify(addresses), function (err) {
-        if (err) throw err;
-        console.log('wrote addresses');
-    });
-
-    globalResponse.end();
-}
-
-
-//get
-function getAddresses(){
-    console.log("getting addresses...")
-
-    fs.readFile('addresses.txt', function(err, data) {
-        globalResponse.writeHead(200, {'Content-Type': 'text/html'});
-        try{
-            globalResponse.write(data);
-        }catch(error){
-            console.log("data can not be written: " + JSON.stringify(error) + "\n data: " + data)
-        }
-        globalResponse.end();
-    });
-}
-
-function test(){
-
-    console.log("test")
-
-    var con = sql.createConnection({
-        host: "104.131.8.27",
-        user: "root",
-        password: "siyum",
-        database: "inwood"
-      });
-      
-      con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-      });
-}

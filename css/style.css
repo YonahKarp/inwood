@@ -1,0 +1,162 @@
+* {
+  font-family: sans-serif; }
+
+#map {
+  height: 100%; }
+
+/* Optional: Makes the sample page fill the window. */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0; }
+
+#title {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  width: 50%;
+  top: 1%;
+  margin-left: -25%;
+  left: 50%;
+  text-align: center;
+  color: #0B4F91; }
+
+#ykarp {
+  position: fixed;
+  z-index: 10;
+  bottom: 3%;
+  left: 3%;
+  margin-right: 3%;
+  text-align: center;
+  border-radius: 3px;
+  background: #0B4F91;
+  color: #f0f0f0;
+  padding: 10px 25px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+.close {
+  position: absolute;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  top: 0;
+  right: 14px;
+  cursor: pointer; }
+
+.suggest {
+  position: absolute;
+  z-index: 11;
+  bottom: 80px;
+  left: 3%; }
+
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: rgba(17, 17, 17, 0.5);
+  z-index: 100; }
+
+#addressForm, #approvalForm {
+  display: none;
+  position: fixed;
+  z-index: 101;
+  background: whitesmoke;
+  min-height: 100px;
+  width: 95%;
+  max-width: 500px;
+  margin: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); }
+  #addressForm .padding, #approvalForm .padding {
+    padding: 10px; }
+  #addressForm h3, #approvalForm h3 {
+    text-align: center; }
+  #addressForm .margin-right, #approvalForm .margin-right {
+    margin-right: 12px; }
+  #addressForm #adminPass, #approvalForm #adminPass {
+    display: none; }
+
+#admin, .approve, .delete {
+  margin: 10px 10px 0 0;
+  color: #0B4F91;
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline-block; }
+
+.suggest a {
+  color: #0B4F91; }
+
+@media only screen and (min-width: 430px) {
+  #ykarp .close {
+    display: none; } }
+
+@media only screen and (min-width: 320px) {
+  #ykarp {
+    font-size: 11pt; } }
+
+#customOptions {
+  background-color: white;
+  position: fixed;
+  z-index: 10;
+  box-shadow: rgba(0, 0, 0, 0.3) 1px 1px 4px -1px;
+  top: 10px;
+  left: 100px;
+  font-size: 11px;
+  padding: 1.5px 10px;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px; }
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min--moz-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 2 / 1), only screen and (min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+  #customOptions {
+    left: 115px;
+    padding: 4px 10px; } }
+
+#pendingToggle {
+  display: inline-block;
+  height: 24px;
+  width: 45px;
+  border-radius: 15px;
+  position: relative;
+  z-index: 100;
+  background-color: whitesmoke;
+  border: whitesmoke 1px solid;
+  transition: background-color .2s ease-in-out;
+  vertical-align: middle; }
+  #pendingToggle .toggle {
+    height: 24px;
+    width: 24px;
+    position: absolute;
+    background: white;
+    border-radius: 15px;
+    transform: translateX(0px);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer; }
+  #pendingToggle.active {
+    background-color: #64bd63; }
+    #pendingToggle.active .toggle {
+      transform: translateX(21px); }
+
+#logo {
+  position: fixed;
+  z-index: 10;
+  top: 3%;
+  right: 3%;
+  width: 10%;
+  max-width: 150px;
+  min-width: 75px;
+  border-radius: 50%; }
+
+#alertLayer {
+  position: fixed;
+  display: none;
+  z-index: 102;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  background: rgba(17, 17, 17, 0.8);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 5px; }

@@ -4,7 +4,7 @@
     <title>Inwood Jewish community</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./css/style.css">
   </head>
   <body>
 
@@ -16,11 +16,59 @@
       <img id="logo" src="./pinit.png"/>
     </a>
 
+    <div id="customOptions">
+      <span>Show Pending Addresses </span>
+      <div id="pendingToggle"><span class="toggle"></span></div>
+    </div>
+    
+
     <div id="ykarp">
         Need a custom website? Contact karp.yoni@gmail.com
-        <div id="close">x</div>
+        <div class="close">x</div>
     </div>
     <div id="map"></div>
+
+    <div class="suggest">
+        <a href="#">Missing Address?</a>
+    </div>
+
+    <div id="overlay"></div>
+    <div id="addressForm">
+      <div class="close">x</div>
+      <div class="padding">
+        <form id="form" action="#" method="get">
+          <h3>Submit New Address</h3>
+          <div>
+            <span class="margin-right">Address: </span> <input type="text" id="newAddress"/>   <span>, Inwood, NY, 11096</span>
+            <input type="submit" value="Submit">
+          </div>
+          <div id="adminPass"> 
+            <span>Password: </span><input id="password" type="password"/>
+          </div>
+
+          <div id="admin">admin? </div>
+        </form>
+      </div>
+
+    </div>
+
+    <div id="approvalForm">
+      <div class="close">x</div>
+      <div class="padding">
+        <form id="approveForm" action="#" method="get">
+          <h3 class="adminHeader">Admin Address Approval</h3>
+          <div><span class="margin-right">Address:</span> <span id="approvalAddress"></span></div>
+          <div>
+            <span>Password: </span><input id="pass" type="password"/>
+            <input type="submit" value="Submit">
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <div id="alertLayer"></div>
+
     <script src="./jquery.min.js">
     </script>
     <script src="./map.js"></script>
